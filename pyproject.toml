@@ -25,6 +25,11 @@ classifiers = [
     "Topic :: Text Processing :: Markup :: XML",
 ]
 
+[project.urls]
+Homepage = "https://github.com/synowiecsixsl5063-spec/svg-aligner"
+Repository = "https://github.com/synowiecsixsl5063-spec/svg-aligner"
+Issues = "https://github.com/synowiecsixsl5063-spec/svg-aligner/issues"
+
 [project.scripts]
 svg-aligner = "svg_aligner.core:main"
 

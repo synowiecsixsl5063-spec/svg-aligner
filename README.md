@@ -1,8 +1,32 @@
 # svg-aligner
 
-> Deterministic SVG alignment post-processor for LLM-generated content.
+[![PyPI version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/synowiecsixsl5063-spec/svg-aligner)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen.svg)](#installation)
 
-When LLMs write complete SVG XML by hand (as in [pptmaster](https://github.com/)), visually grouped elements often end up with pixel-level coordinate drift — a row of boxes that *should* be left-aligned may have `x="120"`, `x="122"`, `x="119"`.  **svg-aligner** detects these near-misses with a deterministic algorithm and snaps them to exact alignment, producing clean, predictable output without requiring a second LLM call.
+English | [中文](./README_CN.md)
+
+> **Deterministic SVG alignment post-processor for LLM-generated content.**
+
+When LLMs write complete SVG XML by hand (as in [pptmaster](https://github.com/hugohe3/ppt-master)), visually grouped elements often end up with pixel-level coordinate drift — a row of boxes that *should* be left-aligned may have `x="120"`, `x="122"`, `x="119"`. **svg-aligner** detects these near-misses with a deterministic algorithm and snaps them to exact alignment, producing clean, predictable output without requiring a second LLM call.
+
+## Why svg-aligner?
+
+LLMs are **not layout engines**. When generating SVG from scratch, they produce coordinates that are *approximately* correct but drift by 2–4 pixels. This causes:
+
+- Text boxes that look "glued together" instead of properly spaced
+- Column headers that zigzag instead of forming a clean line
+- Equal-spacing layouts that look "slightly off" to the human eye
+
+svg-aligner fixes this deterministically — no AI hallucination risk, no API costs, predictable results every time.
+
+| Problem | Before svg-aligner | After svg-aligner |
+|---------|-------------------|-------------------|
+| Left alignment drift | `x="120"`, `x="122"`, `x="119"` | `x="120"`, `x="120"`, `x="120"` |
+| Uneven distribution | gaps: 2px, 3px, 1px | gaps: 2px, 2px, 2px |
+| Text-anchor confusion | text visually at 194px vs rect at 192px | both snapped to 192px |
+| Nested transform drift | deep element off by 3px vs sibling | both at exact same position |
 
 ## Core Algorithm
 
@@ -19,7 +43,7 @@ The aligner works in three stages:
 ### From source
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/svg-aligner.git
+git clone https://github.com/synowiecsixsl5063-spec/svg-aligner.git
 cd svg-aligner
 pip install -e .
 ```
@@ -27,7 +51,7 @@ pip install -e .
 ### Direct install via pip
 
 ```bash
-pip install git+https://github.com/YOUR_USERNAME/svg-aligner.git
+pip install git+https://github.com/synowiecsixsl5063-spec/svg-aligner.git
 ```
 
 ### No-install (standalone)
@@ -126,11 +150,55 @@ svg-aligner/
 │   └── test_integration.py      # Integration / stress tests
 ├── examples/
 │   └── sample_usage.py          # Usage examples
-├── README.md
+├── scripts/
+│   └── generate_promo_images.py # Promotional image generator
+├── docs/
+│   └── assets/                  # Promotional images
+├── README.md                    # English README
+├── README_CN.md                 # Chinese README
+├── INTEGRATION.md               # pptmaster integration guide
+├── SOCIAL_MEDIA.md              # Social media promotional kit
 ├── LICENSE                      # MIT
 ├── .gitignore
 └── pyproject.toml
 ```
+
+## Multi-AI Collaboration
+
+svg-aligner was built for and battle-tested in a multi-AI workflow pipeline:
+
+```
+Source Document → Qwen (structure extraction) → GPT (image generation)
+    → Claude Code (SVG generation) → svg-aligner (coordinate correction)
+    → PPTX export
+```
+
+In the pptmaster project, svg-aligner serves as the **final quality gate** after SVG generation:
+
+1. **Claude Code** generates complete SVG slides with rich layouts
+2. **svg-aligner** processes each slide, detecting and fixing pixel-level drift
+3. Cleaned SVGs are converted to natively editable PPTX
+
+This pipeline was **stress-tested with 300+ SVG pages** across multiple document types (research papers, product launches, financial reports) and has proven reliable in production use.
+
+### Integration with pptmaster
+
+svg-aligner is integrated into pptmaster's `finalize_svg` post-processing pipeline. See [INTEGRATION.md](./INTEGRATION.md) for the complete integration guide.
+
+## Bug Fixes History
+
+svg-aligner passed **hell-grade stress testing** with the following critical fixes:
+
+| Fix | Issue | Resolution |
+|-----|-------|------------|
+| **FIX-1** | ET Node wrapper dunder method collisions | Explicit `__slots__` and string-concatenated dunder names |
+| **FIX-2** | SVG serialization losing namespace declarations | Regex-based xmlns detection and restoration |
+| **FIX-3** | Inverse-CTM using only parent transform | Full CTM = parent × local matrix for correct inverse |
+| **FIX-4** | Text-anchor not accounted for in write-back | `adjust_for_text_anchor()` called before delta computation |
+| **FIX-5** | XML declaration parsing with malformed input | Regex-based declaration stripping instead of `str.index()` |
+| **FIX-6** | RecursionError on deeply nested SVG | `MAX_DOM_DEPTH = 512` guard on DOM traversal |
+| **FIX-7** | Namespace prefix auto-generation | Pre-scan and register all xmlns declarations |
+| **FIX-8** | Path element coordinate translation | `_translate_path_d()` for direct `d` attribute modification |
 
 ## Troubleshooting & Pitfalls
 

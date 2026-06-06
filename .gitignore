@@ -31,3 +31,4 @@ Thumbs.db
 # Project-specific
 *.svg
 *.log
+uv.lock

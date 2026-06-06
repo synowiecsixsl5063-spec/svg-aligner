@@ -386,6 +386,10 @@
   <h2 class="section-title">🌟 效果对比</h2>
   <p class="section-sub">同一段 LLM 生成的 SVG，处理前 vs 处理后</p>
 
+  <div style="max-width:900px;margin:0 auto 40px;border-radius:16px;overflow:hidden;border:1px solid var(--border);">
+    <img src="assets/before_after_comparison.png" alt="修正前后对比" style="width:100%;display:block;">
+  </div>
+
   <div class="comparison">
     <div class="compare-card compare-before">
       <span class="tag">❌ 修正前</span>
@@ -462,6 +466,10 @@
   <h2 class="section-title">🔄 多 AI 协作流程</h2>
   <p class="section-sub">svg-aligner 是 LLM 生成 SVG 的<strong style="color:var(--accent1)">最后一道防线</strong></p>
 
+  <div style="max-width:900px;margin:0 auto 40px;border-radius:16px;overflow:hidden;border:1px solid var(--border);">
+    <img src="assets/multi_ai_collaboration.png" alt="多AI协作流程图" style="width:100%;display:block;">
+  </div>
+
   <div class="pipeline">
     <div class="pipe-node">
       <span class="icon">📄</span>
@@ -528,11 +536,108 @@
   </div>
 </div>
 
+<!-- ===== SHARE ===== -->
+<section class="section" style="padding-bottom:0">
+  <h2 class="section-title">📡 一键转发 · 帮我们传播</h2>
+  <p class="section-sub">复制下方文案，发到朋友圈 / 微博 / 即刻 / 技术群</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:20px;max-width:1000px;margin:0 auto;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <strong style="color:var(--accent1);">🔥 朋友圈 / 微博 版本</strong>
+        <button onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)" style="background:var(--accent3);color:#fff;border:none;padding:6px 16px;border-radius:8px;cursor:pointer;font-size:13px;">📋 复制</button>
+      </div>
+      <pre style="background:#0d1117;border-radius:10px;padding:16px;font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.8;overflow-x:auto;">🔥【svg-aligner：LLM生成SVG的排版革命！】🔥
+
+⚡️还在为LLM生成的SVG文字糊成一团而抓狂？
+⚡️还在为方位错误、元素重叠而熬夜调试？
+
+✅ svg-aligner来了！
+   - 5px极差阈值算法，1px级偏移？自动修正！
+   - 逆向CTM回写技术，坐标精确如手术刀！
+   - 跨类型去重机制，文件干净如新出厂！
+
+🚀 五大硬核优势：
+   🛡️ 300+页地狱级压测 | 🤖 千问→GPT→Claude Code闭环
+   📊 集成pptmaster | ⚡ 5分钟上手 | 🔒 零依赖确定性
+
+🔗 体验地址：https://synowiecsixsl5063-spec.github.io/svg-aligner
+⭐ GitHub：https://github.com/synowiecsixsl5063-spec/svg-aligner
+📖 Star即送《LLM生成SVG最佳实践指南》！</pre>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <strong style="color:var(--green);">📱 即刻 / V2EX 版本</strong>
+        <button onclick="navigator.clipboard.writeText(this.parentElement.nextElementSibling.textContent)" style="background:var(--accent3);color:#fff;border:none;padding:6px 16px;border-radius:8px;cursor:pointer;font-size:13px;">📋 复制</button>
+      </div>
+      <pre style="background:#0d1117;border-radius:10px;padding:16px;font-size:13px;color:var(--text);white-space:pre-wrap;line-height:1.8;overflow-x:auto;">【开源推荐】svg-aligner
+
+LLM生成的SVG坐标总是"差一点"？x=120, 122, 119 而不是整齐的 120, 120, 120？
+
+这个小工具用 5px 极差阈值算法自动检测并修正像素级偏移：
+• 零依赖，纯 Python 标准库
+• 确定性输出，无 API 调用
+• 300+ 页地狱压测已过
+• 集成 pptmaster，一键生成原生 PPTX
+
+GitHub：https://github.com/synowiecsixsl5063-spec/svg-aligner
+体验页：https://synowiecsixsl5063-spec.github.io/svg-aligner</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NAV ===== -->
+<section class="section" style="padding-bottom:0">
+  <h2 class="section-title">📂 完整资源导航</h2>
+  <p class="section-sub">从任意入口进入，无缝跳转全部资源</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;max-width:900px;margin:0 auto;">
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner" target="_blank"
+       style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:all 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">📦</div>
+      <strong>GitHub 仓库</strong>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">源码 · Issue · PR · Release</p>
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README.md" target="_blank"
+       style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:all 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">📖</div>
+      <strong>English README</strong>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">完整 API 文档 · 安装指南</p>
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README_CN.md" target="_blank"
+       style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:all 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">📚</div>
+      <strong>中文 README</strong>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">中文完整文档</p>
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/INTEGRATION.md" target="_blank"
+       style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:all 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">🔗</div>
+      <strong>集成指南</strong>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">pptmaster 对接 · 代码示例</p>
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/SOCIAL_MEDIA.md" target="_blank"
+       style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:all 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">📢</div>
+      <strong>宣传工具包</strong>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">推文 · 文案 · 海报配文</p>
+    </a>
+    <a href="https://github.com/hugohe3/ppt-master" target="_blank"
+       style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:all 0.3s ease;">
+      <div style="font-size:28px;margin-bottom:8px;">🎬</div>
+      <strong>pptmaster</strong>
+      <p style="color:var(--muted);font-size:13px;margin-top:4px;">AI 驱动的 PPT 生成系统</p>
+    </a>
+  </div>
+</section>
+
 <footer>
   <p>
     svg-aligner · MIT License ·
     <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner">GitHub</a> ·
-    零依赖纯 Python · 确定性算法
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README_CN.md">中文文档</a> ·
+    <a href="https://github.com/hugohe3/ppt-master">pptmaster</a>
   </p>
   <p style="margin-top:8px;">Made with ❤️ for the AI×SVG community</p>
 </footer>

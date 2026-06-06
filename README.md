@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen.svg)](#installation)
 
-English | [中文](./README_CN.md)
+English | [中文](./README_CN.md) | [🌐 Promo Page](https://synowiecsixsl5063-spec.github.io/svg-aligner)
 
 > **Deterministic SVG alignment post-processor for LLM-generated content.**
 

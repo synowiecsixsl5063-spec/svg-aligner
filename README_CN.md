@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![零依赖](https://img.shields.io/badge/依赖-零-brightgreen.svg)](#安装)
 
-[English](./README.md) | 中文
+[English](./README.md) | 中文 | [🌐 宣传页](https://synowiecsixsl5063-spec.github.io/svg-aligner)
 
 > **面向 LLM 生成内容的确定性 SVG 坐标对齐后处理器。**
 

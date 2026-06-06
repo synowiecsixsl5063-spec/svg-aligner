@@ -4,6 +4,7 @@
 
 - **Project**: svg-aligner — Deterministic SVG Alignment Post-Processor
 - **GitHub**: https://github.com/synowiecsixsl5063-spec/svg-aligner
+- **Landing Page**: https://synowiecsixsl5063-spec.github.io/svg-aligner
 - **Tagline**: "When LLMs write SVG, the coordinates are never quite right. svg-aligner fixes that — deterministically."
 - **License**: MIT
 - **Dependencies**: Zero (stdlib only)
@@ -178,6 +179,7 @@ Integration guide included.
 
 🔥【立即体验】🔥
 GitHub：https://github.com/synowiecsixsl5063-spec/svg-aligner
+体验页：https://synowiecsixsl5063-spec.github.io/svg-aligner
 文档：https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README_CN.md
 安装：pip install git+https://github.com/synowiecsixsl5063-spec/svg-aligner.git
 

@@ -132,6 +132,57 @@ svg-aligner/
 └── pyproject.toml
 ```
 
+## Troubleshooting & Pitfalls
+
+### ⚠️ SVG Layout Design Constraint (for LLM Prompt Writers)
+
+When generating SVG that will be processed by svg-aligner, ensure that
+**elements belonging to different columns/rows are spaced at least 20 px apart**
+on the primary alignment axis.
+
+If two columns of text have their X coordinates within 5 px of each other
+(e.g. `x="48"`, `x="51"`, `x="52"` all at `y="244"`), the aligner will
+correctly interpret them as "elements in the same visual row with minor
+drift" and snap them all to the same baseline.  This is the algorithm
+working **as designed**, not a bug — it simply cannot know your intent to
+create separate columns.
+
+**Correct pattern**: space columns far apart:
+```xml
+<!-- Column 1: x=48 -->
+<text x="48" y="244">Column 1</text>
+<!-- Column 2: x=340 (292px gap — safely outside 5px window) -->
+<text x="340" y="244">Column 2</text>
+<!-- Column 3: x=632 (292px gap) -->
+<text x="632" y="244">Column 3</text>
+```
+
+**Intentional minor offsets** (2–4 px) for the aligner to correct should be
+placed **within the same column group**:
+```xml
+<!-- Within column 2: title/body at x=343/344 — aligner will snap to 343 -->
+<text x="343" y="244" font-weight="bold">Title</text>
+<text x="344" y="274">Body text</text>
+```
+
+### ⚠️ pptmaster Integration: Clean Up Intermediate Files
+
+When integrating svg-aligner into the **pptmaster** `finalize_svg` pipeline,
+the downstream `svg_to_pptx` converter generates compatibility backups
+(`backup/<timestamp>/`) and intermediate directories (`svg_final/`,
+`svg_output/`) by default.
+
+To produce a clean `.pptx`-only output:
+
+```bash
+# Use --only native to skip the SVG-reference backup PPTX
+# Use -s final to read from svg_final/ (post-processed)
+python scripts/svg_to_pptx.py <project_path> --only native -s final
+```
+
+Or programmatically, call `cleanup_intermediates()` after export to remove
+`svg_output/`, `svg_final/`, `backup/`, and `.cache/` directories.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

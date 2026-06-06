@@ -1030,6 +1030,101 @@ def build_element_records(svg_dom: Any) -> list:
 # Core algorithm 2: alignment detection
 # =============================================================================
 
+def _bboxes_share_perpendicular_band(
+    a_bbox, b_bbox, axis: str, gap_tolerance: float = 20.0
+) -> bool:
+    """
+    Check whether two bboxes are close enough on the perpendicular axis
+    to be considered part of the same visual region.
+
+    axis="y" checks vertical proximity (for LEFT/RIGHT/CENTER_H alignment).
+    axis="x" checks horizontal proximity (for TOP/BOTTOM/CENTER_V alignment).
+
+    Two bboxes "share a band" if they overlap OR are within gap_tolerance
+    pixels of each other on that axis.  This prevents grouping elements
+    that live in completely different columns/rows while still allowing
+    elements at moderately different positions (e.g. different rows in the
+    same column) to be aligned together.
+    """
+    if axis == "y":
+        # Check vertical proximity: do the Y ranges overlap or come close?
+        lo = max(a_bbox.y_min, b_bbox.y_min)
+        hi = min(a_bbox.y_max, b_bbox.y_max)
+    else:
+        # Check horizontal proximity
+        lo = max(a_bbox.x_min, b_bbox.x_min)
+        hi = min(a_bbox.x_max, b_bbox.x_max)
+
+    # If ranges overlap, they definitely share a band
+    if hi >= lo:
+        return True
+
+    # If gap is within tolerance, they're "close enough"
+    return abs(hi - lo) <= gap_tolerance
+
+
+def _cluster_with_perp_check(
+    sorted_recs: list,
+    atype,
+    key_fn,
+    cluster_window: float,
+    min_size: int,
+    perp_axis: str,
+) -> list:
+    """
+    Build clusters on the primary alignment axis, but only add an element
+    to the current cluster if it also overlaps on the perpendicular axis
+    with at least ONE existing member.
+
+    This prevents, for example, grouping three column titles at x=48/51/52
+    that live at completely different Y positions into one LEFT-alignment group.
+
+    Rule: the perp check is ONLY applied when the new element would expand
+    the cluster's primary-axis range beyond 0.  If all elements in the
+    cluster share the same primary coordinate, they are genuinely aligned
+    already and should stay grouped regardless of perpendicular overlap.
+    """
+    groups: list = []
+    current_cluster = [sorted_recs[0]]
+
+    for rec in sorted_recs[1:]:
+        primary_within = key_fn(rec) - key_fn(current_cluster[0]) <= cluster_window
+
+        # Perp check: only needed when the candidate differs on the primary axis.
+        # If key(candidate) == key(cluster[0]) the elements are already aligned —
+        # keep them together.
+        primary_differs = key_fn(rec) != key_fn(current_cluster[0])
+
+        if not primary_within:
+            # Outside cluster window — flush and start new cluster
+            if len(current_cluster) >= min_size:
+                groups.append(AlignmentGroup(atype, current_cluster.copy()))
+            current_cluster = [rec]
+        elif not primary_differs:
+            # Already on the same primary coordinate — always include
+            current_cluster.append(rec)
+        else:
+            # Within cluster window but different primary coord —
+            # require perpendicular overlap to prevent cross-column grouping
+            perp_ok = False
+            for existing in current_cluster:
+                if _bboxes_share_perpendicular_band(rec.bbox, existing.bbox, perp_axis):
+                    perp_ok = True
+                    break
+
+            if perp_ok:
+                current_cluster.append(rec)
+            else:
+                if len(current_cluster) >= min_size:
+                    groups.append(AlignmentGroup(atype, current_cluster.copy()))
+                current_cluster = [rec]
+
+    if len(current_cluster) >= min_size:
+        groups.append(AlignmentGroup(atype, current_cluster.copy()))
+
+    return groups
+
+
 def find_candidate_groups(
     records: Sequence, threshold: float = ALIGN_THRESHOLD
 ) -> list:
@@ -1050,6 +1145,20 @@ def find_candidate_groups(
         AlignmentType.DISTRIBUTE_V: lambda r: r.bbox.cy,
     }
 
+    # For each alignment type, specify which perpendicular axis to check.
+    # LEFT/RIGHT/CENTER_H align horizontally → must overlap on Y axis.
+    # TOP/BOTTOM/CENTER_V align vertically → must overlap on X axis.
+    perp_axis_map: dict = {
+        AlignmentType.LEFT: "y",
+        AlignmentType.RIGHT: "y",
+        AlignmentType.TOP: "x",
+        AlignmentType.BOTTOM: "x",
+        AlignmentType.CENTER_H: "y",
+        AlignmentType.CENTER_V: "x",
+        AlignmentType.DISTRIBUTE_H: "y",
+        AlignmentType.DISTRIBUTE_V: "x",
+    }
+
     for atype in AlignmentType:
         key_fn = coord_fns[atype]
         sorted_recs = sorted(records, key=key_fn)
@@ -1059,18 +1168,16 @@ def find_candidate_groups(
         min_size = 3 if atype in {
             AlignmentType.DISTRIBUTE_H, AlignmentType.DISTRIBUTE_V
         } else 2
-        current_cluster = [sorted_recs[0]]
 
-        for rec in sorted_recs[1:]:
-            if key_fn(rec) - key_fn(current_cluster[0]) <= cluster_window:
-                current_cluster.append(rec)
-            else:
-                if len(current_cluster) >= min_size:
-                    groups.append(AlignmentGroup(atype, current_cluster.copy()))
-                current_cluster = [rec]
-
-        if len(current_cluster) >= min_size:
-            groups.append(AlignmentGroup(atype, current_cluster.copy()))
+        cluster_groups = _cluster_with_perp_check(
+            sorted_recs,
+            atype,
+            key_fn,
+            cluster_window,
+            min_size,
+            perp_axis_map[atype],
+        )
+        groups.extend(cluster_groups)
 
     return groups
 

@@ -319,7 +319,13 @@ def _unicode_and_emoji_in_text():
 
 
 def _cdata_and_comment_chaos():
-    """CDATA sections and comments interspersed with elements."""
+    """CDATA sections and comments interspersed with elements.
+
+    Note: rects are at Y=100/200/300 — far apart vertically.
+    The perp-axis check correctly prevents LEFT-alignment grouping
+    across different Y bands (this is the fix, not a regression).
+    TOP alignment should still fire since they share the same X band.
+    """
     return (
         "cdata_and_comment_chaos",
         """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
@@ -330,7 +336,7 @@ def _cdata_and_comment_chaos():
   <rect x="103" y="200" width="50" height="30"/>
   <rect x="101" y="300" width="50" height="30"/>
 </svg>""",
-        1,
+        0,  # Changed: perp-axis check now correctly prevents cross-row LEFT grouping
     )
 
 

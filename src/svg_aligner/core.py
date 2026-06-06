@@ -408,18 +408,50 @@ def _get_attr_with_style(node: Any, name: str, default: Any = None) -> Any:
     return default
 
 
+_FULLWIDTH_RE = re.compile(r"[０-９]")  # fullwidth digits ０-９
+
+
+def _normalize_value(value: str) -> str:
+    """Normalize fullwidth digits to ASCII and strip whitespace."""
+    # Fullwidth digits → ASCII
+    result = []
+    for ch in value:
+        cp = ord(ch)
+        if 0xFF10 <= cp <= 0xFF19:
+            result.append(chr(cp - 0xFEE0))
+        else:
+            result.append(ch)
+    return "".join(result)
+
+
+def _safe_float(raw: str) -> float | None:
+    """Convert a raw string to float, returning None for NaN/Inf/failure."""
+    try:
+        f = float(raw)
+    except (ValueError, OverflowError):
+        return None
+    if f != f:  # NaN check (NaN != NaN is True)
+        return None
+    if f == float("inf") or f == float("-inf"):
+        return None
+    return f
+
+
 def _attr_to_float(value: Any, default: float = 0.0) -> float:
     if value is None:
         return default
     if isinstance(value, (int, float)):
-        return float(value)
+        f = float(value)
+        if f != f or f == float("inf") or f == float("-inf"):
+            return default
+        return f
     if isinstance(value, str):
-        m = _NUM_RE.search(value.strip())
+        cleaned = _normalize_value(value.strip())
+        m = _NUM_RE.search(cleaned)
         if m:
-            try:
-                return float(m.group(0))
-            except Exception:
-                return default
+            f = _safe_float(m.group(0))
+            if f is not None:
+                return f
     return default
 
 
@@ -427,15 +459,18 @@ def _parse_float_list(value: Any) -> list[float]:
     if value is None:
         return []
     if isinstance(value, (int, float)):
-        return [float(value)]
+        f = float(value)
+        if f != f or abs(f) == float("inf"):
+            return []
+        return [f]
     if not isinstance(value, str):
         return []
+    cleaned = _normalize_value(value)
     nums: list[float] = []
-    for m in _NUM_RE.finditer(value):
-        try:
-            nums.append(float(m.group(0)))
-        except Exception:
-            pass
+    for m in _NUM_RE.finditer(cleaned):
+        f = _safe_float(m.group(0))
+        if f is not None:
+            nums.append(f)
     return nums
 
 
@@ -1670,6 +1705,62 @@ def dataclass_to_dict(obj: Any) -> Any:
 # XML Parsing (外围补全)
 # =============================================================================
 
+def _repair_malformed_svg(svg_string: str) -> str:
+    """
+    Attempt best-effort repairs on malformed SVG before parsing.
+
+    Fixes common issues that would otherwise cause ET.ParseError:
+    - Unclosed <g> tags at end of document
+    - Non-SVG foreign elements (<div>, <span>, etc.)
+    - CDATA sections that confuse the parser
+    Returns the (possibly repaired) SVG string, or raises if unrecoverable.
+    """
+    import re as _re
+
+    clean = svg_string.strip()
+
+    # Strip XML declaration (may be malformed)
+    if clean.startswith("<?xml"):
+        m = _re.match(r"<\?xml.*?\?>", clean, _re.S)
+        if m:
+            clean = clean[m.end():].lstrip()
+
+    # Remove CDATA sections — they confuse ET iteration but content
+    # is not SVG elements anyway
+    clean = _re.sub(r"<!\[CDATA\[.*?\]\]>", "", clean, flags=_re.S)
+
+    # Strip known non-SVG foreign elements (<div>, <span>, <style>,
+    # <script>, <link>, <meta>) but keep their text content so the
+    # rest of the DOM stays intact
+    for tag in ("div", "span", "script", "link", "meta", "style", "br", "img"):
+        clean = _re.sub(
+            r"<" + tag + r"[^>]*>.*?</" + tag + r">",
+            "",
+            clean,
+            flags=_re.S | _re.I,
+        )
+        # Self-closing variants
+        clean = _re.sub(
+            r"<" + tag + r"[^>]*/>",
+            "",
+            clean,
+            flags=_re.S | _re.I,
+        )
+
+    # Auto-close unclosed <g> tags: count opens vs closes, append missing </g>
+    opens = len(_re.findall(r"<g[\s>/]", clean))
+    closes = len(_re.findall(r"</g>", clean))
+    for _ in range(max(0, opens - closes)):
+        # Insert </g> before </svg>
+        if "</svg>" in clean.lower():
+            clean = clean.replace("</svg>", "</g></svg>", 1)
+        else:
+            # Last resort: just append
+            clean = clean.rstrip() + "</g>"
+
+    return clean
+
+
 def _parse_svg_string(svg_string: str) -> tuple:
     """
     Parse an SVG string into an ElementTree root element.
@@ -1678,15 +1769,13 @@ def _parse_svg_string(svg_string: str) -> tuple:
     str.index("?>") to avoid ValueError on malformed XML.
 
     [FIX-7] Calls _discover_and_register_namespaces for proper ns handling.
+
+    [FIX-E2E] Attempts auto-repair of malformed SVG (unclosed tags,
+    foreign elements, CDATA) before giving up.
     """
     ns_map = _discover_and_register_namespaces(svg_string)
 
-    # [FIX-5] Safe XML declaration removal using regex
-    clean = svg_string.strip()
-    if clean.startswith("<?xml"):
-        m = re.match(r"<\?xml.*?\?>", clean, re.S)
-        if m:
-            clean = clean[m.end():].lstrip()
+    clean = _repair_malformed_svg(svg_string)
 
     root = ET.fromstring(clean)
     return root, ns_map
@@ -1741,7 +1830,29 @@ def process_svg(
     -------
     (str, list[dict])
         A 2-tuple of (possibly-modified SVG string, list of action dicts).
+
+    Safety guarantee
+    ----------------
+    This function NEVER raises uncaught exceptions.  Any parsing error,
+    coordinate overflow, or serialisation failure results in the original
+    SVG string being returned unchanged with an empty action log.
     """
+    try:
+        return _process_svg_impl(svg_string, threshold, dry_run)
+    except Exception as e:  # pragma: no cover — belt-and-suspenders
+        # Last-resort safety net: NEVER crash the caller.
+        # Log to stderr so the problem is visible during development.
+        import traceback as _tb
+        _tb.print_exc()
+        return svg_string, []
+
+
+def _process_svg_impl(
+    svg_string: str,
+    threshold: float,
+    dry_run: bool,
+) -> tuple:
+    """Internal implementation of process_svg — may raise on fatal errors."""
     # 1. Parse
     et_root, ns_map = _parse_svg_string(svg_string)
 

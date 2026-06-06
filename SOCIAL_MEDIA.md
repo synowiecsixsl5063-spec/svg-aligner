@@ -151,7 +151,41 @@ Integration guide included.
 
 ## 4. Chinese Platforms (中文社交平台)
 
-### 知乎回答模板
+### 🔥 主推宣传文案（广告体）
+
+**适用场景**：微博、即刻、V2EX、知乎想法、朋友圈、微信群
+
+```
+🔥【svg-aligner：LLM生成SVG的排版革命！】🔥
+
+⚡️还在为LLM生成的SVG文字糊成一团而抓狂？
+⚡️还在为方位错误、元素重叠而熬夜调试？
+
+✅ svg-aligner来了！
+   - 5px极差阈值算法，1px级偏移？自动修正！
+   - 逆向CTM回写技术，坐标精确如手术刀！
+   - 跨类型去重机制，文件干净如新出厂！
+
+🌟【效果对比】🌟
+[修正前]：文字重叠、方位错误、元素乱飞
+[修正后]：清晰对齐、专业排版、完美呈现
+
+🚀【为什么选择svg-aligner？】🚀
+✓ 地狱级压测验证，8个核心Bug已修复
+✓ 多AI协作流程，千问→GPT→Claude Code闭环
+✓ 集成pptmaster，LLM生成PPT的终极解决方案
+✓ 5分钟上手，10分钟解决你的排版噩梦！
+
+🔥【立即体验】🔥
+GitHub：https://github.com/synowiecsixsl5063-spec/svg-aligner
+文档：https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README_CN.md
+安装：pip install git+https://github.com/synowiecsixsl5063-spec/svg-aligner.git
+
+📢【限时福利】📢
+Star我们的项目，即送《LLM生成SVG最佳实践指南》！
+```
+
+### 知乎长文模板
 
 **标题**: svg-aligner：解决 LLM 生成 SVG 排版灾难的确定性后处理器
 
@@ -199,6 +233,20 @@ svg-aligner 用 5px 极差阈值算法检测并修正这些偏移：
 GitHub: https://github.com/synowiecsixsl5063-spec/svg-aligner
 
 配合 pptmaster 使用效果更佳。
+```
+
+### 微信朋友圈/群转发
+
+```
+🚀 开源了一个小工具：svg-aligner
+
+专门解决 LLM 生成的 SVG 坐标漂移问题——文字糊成一团？方位错误？一键搞定。
+
+5px 极差阈值算法 + 逆向 CTM 回写 + 零依赖。
+已通过 300+ 页地狱级压测，集成在 pptmaster 管线中稳定运行。
+
+GitHub: https://github.com/synowiecsixsl5063-spec/svg-aligner
+Star 即送《LLM 生成 SVG 最佳实践指南》📖
 ```
 
 ---

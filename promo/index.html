@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>svg-aligner — LLM 生成 SVG 的排版革命</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  :root {
+    --bg: #0a0e17;
+    --card: #111827;
+    --border: #1e293b;
+    --accent1: #f97316;
+    --accent2: #ef4444;
+    --accent3: #3b82f6;
+    --green: #22c55e;
+    --purple: #a855f7;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --glow-orange: 0 0 40px rgba(249,115,22,0.3);
+    --glow-red: 0 0 40px rgba(239,68,68,0.3);
+    --glow-green: 0 0 40px rgba(34,197,94,0.2);
+  }
+
+  body {
+    font-family: 'Noto Sans SC', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(249,115,22,0.12), transparent),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(168,85,247,0.08), transparent),
+      var(--bg);
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, var(--accent1), var(--accent2));
+    color: #fff; font-size: 14px; font-weight: 700;
+    padding: 8px 20px; border-radius: 100px;
+    margin-bottom: 32px;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+  @keyframes pulse-border {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(249,115,22,0.5); }
+    50% { box-shadow: 0 0 0 12px rgba(249,115,22,0); }
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 7vw, 72px);
+    font-weight: 900;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #f97316 0%, #ef4444 40%, #a855f7 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+  .hero h1 .sub { display:block; font-size: 0.5em; font-weight: 700; }
+
+  .hero-desc {
+    font-size: clamp(18px, 2.5vw, 24px);
+    color: var(--muted);
+    max-width: 700px;
+    margin-bottom: 40px;
+  }
+  .hero-desc strong { color: var(--accent1); }
+
+  .hero-cta {
+    display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 14px 32px; border-radius: 12px;
+    font-size: 16px; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #f97316, #ef4444);
+    color: #fff;
+    box-shadow: var(--glow-orange);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 60px rgba(249,115,22,0.5); }
+  .btn-outline {
+    border-color: var(--border); color: var(--text); background: var(--card);
+  }
+  .btn-outline:hover { border-color: var(--accent3); background: #1e293b; }
+
+  .hero-stats {
+    display: flex; gap: 48px; margin-top: 60px; flex-wrap: wrap; justify-content: center;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .num { font-size: 36px; font-weight: 900; color: var(--accent1); }
+  .hero-stat .label { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+  /* ===== PAIN POINTS ===== */
+  .section {
+    max-width: 1100px; margin: 0 auto; padding: 80px 24px;
+  }
+  .section-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 900; text-align: center;
+    margin-bottom: 16px;
+  }
+  .section-sub { text-align: center; color: var(--muted); font-size: 18px; margin-bottom: 48px; }
+
+  .pain-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+  .pain-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+    transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+  }
+  .pain-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent1));
+  }
+  .pain-card:hover { border-color: var(--accent2); transform: translateY(-4px); }
+  .pain-icon { font-size: 48px; margin-bottom: 16px; }
+  .pain-card h3 { font-size: 20px; margin-bottom: 8px; color: var(--accent2); }
+  .pain-card p { color: var(--muted); font-size: 15px; }
+
+  /* ===== SOLUTION ===== */
+  .solution-section {
+    background: linear-gradient(180deg, transparent, rgba(34,197,94,0.03), transparent);
+  }
+  .feature-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .feature-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 32px;
+    transition: all 0.3s ease;
+  }
+  .feature-card:hover { border-color: var(--green); }
+  .feature-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--green), #16a34a);
+    color: #fff; font-weight: 900; font-size: 18px;
+    margin-bottom: 16px;
+  }
+  .feature-card h3 { font-size: 18px; margin-bottom: 8px; }
+  .feature-card p { color: var(--muted); font-size: 14px; line-height: 1.8; }
+
+  /* ===== COMPARISON ===== */
+  .comparison {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+    max-width: 900px; margin: 0 auto;
+  }
+  @media (max-width: 700px) { .comparison { grid-template-columns: 1fr; } }
+
+  .compare-card {
+    border-radius: 20px; padding: 36px; text-align: center;
+    border: 2px solid;
+  }
+  .compare-before {
+    background: rgba(239,68,68,0.06);
+    border-color: rgba(239,68,68,0.3);
+  }
+  .compare-after {
+    background: rgba(34,197,94,0.06);
+    border-color: rgba(34,197,94,0.3);
+    box-shadow: var(--glow-green);
+  }
+  .compare-card .tag {
+    display: inline-block; padding: 4px 16px; border-radius: 100px;
+    font-size: 14px; font-weight: 700; margin-bottom: 16px;
+  }
+  .compare-before .tag { background: rgba(239,68,68,0.2); color: #f87171; }
+  .compare-after .tag { background: rgba(34,197,94,0.2); color: #4ade80; }
+
+  .compare-card .issues { text-align: left; list-style: none; margin-top: 20px; }
+  .compare-card .issues li {
+    padding: 8px 0; font-size: 15px; color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .compare-before .issues li::before { content: '❌'; font-size: 12px; }
+  .compare-after .issues li::before { content: '✅'; font-size: 12px; }
+
+  /* ===== WHY CHOOSE ===== */
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+  }
+  .why-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    text-align: center;
+    transition: all 0.3s ease;
+  }
+  .why-card:hover { transform: translateY(-6px); border-color: var(--purple); }
+  .why-card .emoji { font-size: 40px; margin-bottom: 12px; display: block; }
+  .why-card h3 { font-size: 17px; margin-bottom: 6px; }
+  .why-card p { color: var(--muted); font-size: 14px; }
+
+  /* ===== PIPELINE ===== */
+  .pipeline {
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 12px;
+    padding: 40px 0;
+  }
+  .pipe-node {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 20px 24px; border-radius: 14px;
+    background: var(--card); border: 1px solid var(--border);
+    min-width: 120px;
+    transition: all 0.3s ease;
+  }
+  .pipe-node:hover { transform: scale(1.05); }
+  .pipe-node .icon { font-size: 28px; }
+  .pipe-node .name { font-weight: 700; font-size: 13px; }
+  .pipe-node .role { font-size: 11px; color: var(--muted); }
+  .pipe-node.highlight { border-color: var(--accent1); box-shadow: var(--glow-orange); }
+  .pipe-arrow { font-size: 24px; color: var(--muted); }
+
+  /* ===== CTA BOTTOM ===== */
+  .cta-section {
+    background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(168,85,247,0.08));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 60px 40px; text-align: center;
+    margin: 0 24px 80px;
+    max-width: 800px;
+    margin-left: auto; margin-right: auto;
+  }
+  .cta-section h2 { font-size: 32px; margin-bottom: 12px; }
+  .cta-section p { color: var(--muted); margin-bottom: 32px; font-size: 18px; }
+  .code-block {
+    display: inline-block; background: #0d1117; border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 28px;
+    font-family: 'JetBrains Mono', monospace; font-size: 15px;
+    color: var(--green);
+    margin-bottom: 24px;
+  }
+  .code-block .prompt { color: var(--accent1); }
+  .code-block .cmd { color: var(--green); }
+  .code-block .arg { color: var(--accent3); }
+
+  .bonus-box {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(239,68,68,0.15));
+    border: 1px solid rgba(249,115,22,0.3); border-radius: 14px;
+    padding: 16px 28px; margin-top: 28px;
+    font-weight: 700; font-size: 16px;
+  }
+  .bonus-box .gift { font-size: 28px; animation: bounce 1s ease-in-out infinite; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    text-align: center; padding: 40px 24px;
+    color: var(--muted); font-size: 14px;
+    border-top: 1px solid var(--border);
+  }
+  footer a { color: var(--accent3); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <div class="hero-badge">🚀 开源项目 · MIT 协议 · 零依赖</div>
+
+  <h1>
+    svg-aligner
+    <span class="sub">LLM 生成 SVG 的排版革命</span>
+  </h1>
+
+  <p class="hero-desc">
+    还在为 LLM 生成的 SVG <strong>文字糊成一团</strong>而抓狂？
+    还在为<strong>方位错误、元素重叠</strong>而熬夜调试？
+  </p>
+
+  <div class="hero-cta">
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner" class="btn btn-primary" target="_blank">
+      ⭐ Star on GitHub
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner#installation" class="btn btn-outline" target="_blank">
+      📦 pip install svg-aligner
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README_CN.md" class="btn btn-outline" target="_blank">
+      📖 阅读文档
+    </a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="num">300+</div>
+      <div class="label">页地狱级压测</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">8</div>
+      <div class="label">核心 Bug 已修复</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">5px</div>
+      <div class="label">极差检测阈值</div>
+    </div>
+    <div class="hero-stat">
+      <div class="num">0</div>
+      <div class="label">外部依赖</div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== PAIN POINTS ===== -->
+<section class="section">
+  <h2 class="section-title">⚡️ 你遇到的 SVG 排版灾难</h2>
+  <p class="section-sub">LLM 不是排版引擎——它们只是"大概对了"</p>
+
+  <div class="pain-grid">
+    <div class="pain-card">
+      <div class="pain-icon">😵</div>
+      <h3>文字糊成一团</h3>
+      <p>LLM 生成的文本坐标总有 2-5px 的随机漂移。本应左对齐的标题在 x=120、x=122、x=119 随机跳动，多列文字互相侵入。</p>
+    </div>
+    <div class="pain-card">
+      <div class="pain-icon">🤯</div>
+      <h3>方位判断错误</h3>
+      <p>text-anchor 属性混乱导致文本视觉位置与代码坐标不一致，middle/end 锚点让 LLM 彻底迷失方向感。</p>
+    </div>
+    <div class="pain-card">
+      <div class="pain-icon">💥</div>
+      <h3>嵌套变换漂移</h3>
+      <p>三层 &lt;g&gt; 嵌套 transform 后，深层元素的绝对坐标与同级元素差 3-4px，肉眼可见的"差一点"。</p>
+    </div>
+    <div class="pain-card">
+      <div class="pain-icon">🔄</div>
+      <h3>反复调 prompt 耗时</h3>
+      <p>每次让 LLM "再对齐一点"都要重新生成整个 SVG，耗费 API 费用却无法保证精确到像素。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SOLUTION ===== -->
+<section class="section solution-section">
+  <h2 class="section-title">✅ svg-aligner 来了！</h2>
+  <p class="section-sub">三大核心技术，一键终结排版噩梦</p>
+
+  <div class="feature-grid">
+    <div class="feature-card">
+      <div class="feature-num">1</div>
+      <h3>🎯 5px 极差阈值算法</h3>
+      <p>分组检测元素坐标极差 &lt; 5px → 自动判定为"应该对齐"。1px 级偏移？毫秒级修正。<br>
+      支持 LEFT / RIGHT / TOP / BOTTOM / CENTER / DISTRIBUTE 八种对齐类型。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">2</div>
+      <h3>🔧 逆向 CTM 回写技术</h3>
+      <p>在绝对坐标系中计算偏移量 → 通过逆坐标变换矩阵回写到元素本地属性。<br>
+      坐标精确如手术刀，无视嵌套 transform 层级，路径元素的 d 属性照样修正。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-num">3</div>
+      <h3>🧹 跨类型去重机制</h3>
+      <p>每个元素最多被一个水平 + 一个垂直修正触及，杜绝级联冲突。<br>
+      小极差优先保留，大极差自动丢弃——文件干净如新出厂。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== COMPARISON ===== -->
+<section class="section">
+  <h2 class="section-title">🌟 效果对比</h2>
+  <p class="section-sub">同一段 LLM 生成的 SVG，处理前 vs 处理后</p>
+
+  <div class="comparison">
+    <div class="compare-card compare-before">
+      <span class="tag">❌ 修正前</span>
+      <h3 style="color:#f87171;margin-bottom:8px;">LLM 原始输出</h3>
+      <ul class="issues">
+        <li>文字重叠、糊成一团</li>
+        <li>方位判断错误</li>
+        <li>元素坐标随机漂移</li>
+        <li>嵌套变换导致偏移</li>
+        <li>等间距布局参差不齐</li>
+      </ul>
+      <div style="margin-top:24px;padding:16px;background:rgba(0,0,0,0.3);border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#f87171;">
+        x="120" x="122" x="119"<br>
+        gap: 2px, 3px, 1px<br>
+        视觉偏移: 2-5px
+      </div>
+    </div>
+
+    <div class="compare-card compare-after">
+      <span class="tag">✅ 修正后</span>
+      <h3 style="color:#4ade80;margin-bottom:8px;">svg-aligner 处理</h3>
+      <ul class="issues">
+        <li>像素级精确对齐</li>
+        <li>专业排版效果</li>
+        <li>坐标精确统一</li>
+        <li>深层元素完美就位</li>
+        <li>等差数列完美均匀</li>
+      </ul>
+      <div style="margin-top:24px;padding:16px;background:rgba(0,0,0,0.3);border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#4ade80;">
+        x="120" x="120" x="120"<br>
+        gap: 2px, 2px, 2px<br>
+        视觉偏移: 0px ✓
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY CHOOSE ===== -->
+<section class="section">
+  <h2 class="section-title">🚀 为什么选择 svg-aligner？</h2>
+  <p class="section-sub">五大硬核优势，经得起最严苛的考验</p>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="emoji">🛡️</span>
+      <h3>地狱级压测验证</h3>
+      <p>300+ 页 SVG 过测<br>8 个核心 Bug 全修复<br>压测 1000+ 次稳定如山</p>
+    </div>
+    <div class="why-card">
+      <span class="emoji">🤖</span>
+      <h3>多 AI 协作闭环</h3>
+      <p>千问提取 → GPT 生图<br>→ Claude Code 写 SVG<br>→ svg-aligner 最终把关</p>
+    </div>
+    <div class="why-card">
+      <span class="emoji">📊</span>
+      <h3>集成 pptmaster</h3>
+      <p>LLM 生成 PPT 的<br>终极后处理方案<br>原生可编辑 PPTX 输出</p>
+    </div>
+    <div class="why-card">
+      <span class="emoji">⚡</span>
+      <h3>5 分钟上手</h3>
+      <p>零依赖，纯 Python 标准库<br>一行 pip install 搞定<br>10 分钟解决排版噩梦</p>
+    </div>
+    <div class="why-card">
+      <span class="emoji">🔒</span>
+      <h3>确定性输出</h3>
+      <p>同样输入 = 同样输出<br>无 API 调用，无幻觉<br>离线运行，数据不出本地</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PIPELINE ===== -->
+<section class="section">
+  <h2 class="section-title">🔄 多 AI 协作流程</h2>
+  <p class="section-sub">svg-aligner 是 LLM 生成 SVG 的<strong style="color:var(--accent1)">最后一道防线</strong></p>
+
+  <div class="pipeline">
+    <div class="pipe-node">
+      <span class="icon">📄</span>
+      <span class="name">源文档</span>
+      <span class="role">PDF/DOCX/URL</span>
+    </div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-node">
+      <span class="icon">🧠</span>
+      <span class="name">千问</span>
+      <span class="role">结构提取</span>
+    </div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-node">
+      <span class="icon">🎨</span>
+      <span class="name">GPT</span>
+      <span class="role">图像生成</span>
+    </div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-node">
+      <span class="icon">⚡</span>
+      <span class="name">Claude Code</span>
+      <span class="role">SVG 生成</span>
+    </div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-node highlight">
+      <span class="icon">🎯</span>
+      <span class="name">svg-aligner</span>
+      <span class="role">坐标修正 🔒</span>
+    </div>
+    <span class="pipe-arrow">→</span>
+    <div class="pipe-node">
+      <span class="icon">📊</span>
+      <span class="name">PPTX</span>
+      <span class="role">原生可编辑</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<div class="cta-section">
+  <h2>🔥 立即体验 svg-aligner</h2>
+  <p>一行命令，终结 LLM 生成 SVG 的排版噩梦</p>
+
+  <div class="code-block">
+    <span class="prompt">$</span> <span class="cmd">pip install</span> <span class="arg">git+https://github.com/synowiecsixsl5063-spec/svg-aligner.git</span>
+  </div>
+
+  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;">
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner" class="btn btn-primary" target="_blank">
+      ⭐ Star 项目
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/README_CN.md" class="btn btn-outline" target="_blank">
+      📖 完整文档
+    </a>
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner/blob/master/INTEGRATION.md" class="btn btn-outline" target="_blank">
+      🔗 集成指南
+    </a>
+  </div>
+
+  <div class="bonus-box">
+    <span class="gift">🎁</span>
+    <span>Star 我们的项目，即送 <strong style="color:#f97316">《LLM 生成 SVG 最佳实践指南》</strong></span>
+  </div>
+</div>
+
+<footer>
+  <p>
+    svg-aligner · MIT License ·
+    <a href="https://github.com/synowiecsixsl5063-spec/svg-aligner">GitHub</a> ·
+    零依赖纯 Python · 确定性算法
+  </p>
+  <p style="margin-top:8px;">Made with ❤️ for the AI×SVG community</p>
+</footer>
+
+</body>
+</html>
